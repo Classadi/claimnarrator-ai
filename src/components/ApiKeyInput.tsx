@@ -17,7 +17,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, currentApiKey })
   const handleSubmit = () => {
     if (apiKey.trim()) {
       onApiKeySet(apiKey.trim());
-      localStorage.setItem('openai_api_key', apiKey.trim());
+      localStorage.setItem('openrouter_api_key', apiKey.trim());
     }
   };
 
@@ -26,12 +26,12 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, currentApiKey })
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-yellow-700">
           <Key className="w-5 h-5" />
-          OpenAI API Key Required
+          OpenRouter API Key Required
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-gray-700">
-          To use the AI-powered claim processing, please enter your OpenAI API key. 
+          To use the AI-powered claim processing, please enter your OpenRouter API key. 
           It will be stored locally in your browser.
         </p>
         <div className="flex gap-2">
@@ -40,7 +40,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, currentApiKey })
               type={showApiKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-..."
+              placeholder="sk-or-v1-..."
               className="pr-10"
             />
             <Button
@@ -60,12 +60,12 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ onApiKeySet, currentApiKey })
         <p className="text-xs text-gray-500">
           Get your API key from{' '}
           <a 
-            href="https://platform.openai.com/api-keys" 
+            href="https://openrouter.ai/keys" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-            OpenAI Platform
+            OpenRouter
           </a>
         </p>
       </CardContent>

@@ -25,7 +25,7 @@ const Index = () => {
 
   useEffect(() => {
     // Load API key from localStorage on component mount
-    const savedApiKey = localStorage.getItem('openai_api_key');
+    const savedApiKey = localStorage.getItem('openrouter_api_key');
     if (savedApiKey) {
       setApiKey(savedApiKey);
     }
@@ -33,7 +33,7 @@ const Index = () => {
 
   const handleClaimSubmit = async (input: string) => {
     if (!apiKey) {
-      setError('Please set your OpenAI API key first.');
+      setError('Please set your OpenRouter API key first.');
       return;
     }
 

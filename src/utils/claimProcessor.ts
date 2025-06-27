@@ -1,19 +1,21 @@
 
-// Real AI processing function using OpenAI API
+// Real AI processing function using OpenRouter API
 export const processClaimInput = async (input: string, apiKey: string) => {
   if (!apiKey) {
-    throw new Error('OpenAI API key is required');
+    throw new Error('OpenRouter API key is required');
   }
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'HTTP-Referer': window.location.origin,
+        'X-Title': 'ClaimNarrator AI'
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'mistralai/mistral-small-3.2-24b-instruct-2506:free',
         messages: [
           {
             role: 'system',
@@ -46,16 +48,16 @@ export const processClaimInput = async (input: string, apiKey: string) => {
 
     if (!response.ok) {
       if (response.status === 401) {
-        throw new Error('Invalid API key. Please check your OpenAI API key.');
+        throw new Error('Invalid API key. Please check your OpenRouter API key.');
       }
-      throw new Error(`OpenAI API error: ${response.status}`);
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
     const data = await response.json();
     const aiResponse = data.choices[0]?.message?.content;
 
     if (!aiResponse) {
-      throw new Error('No response from OpenAI API');
+      throw new Error('No response from OpenRouter API');
     }
 
     // Try to parse JSON response
@@ -76,7 +78,7 @@ export const processClaimInput = async (input: string, apiKey: string) => {
     }
 
   } catch (error) {
-    console.error('Error processing claim with OpenAI:', error);
+    console.error('Error processing claim with OpenRouter:', error);
     throw error;
   }
 };
