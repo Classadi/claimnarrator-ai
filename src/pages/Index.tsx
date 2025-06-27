@@ -1,11 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, Shield, FileText, Zap } from 'lucide-react';
 import ClaimInput from '@/components/ClaimInput';
 import NarrativeOutput from '@/components/NarrativeOutput';
 import ReportDownload from '@/components/ReportDownload';
-import ApiKeyInput from '@/components/ApiKeyInput';
 import { processClaimInput } from '@/utils/claimProcessor';
 
 interface ClaimNarrative {
@@ -20,28 +19,14 @@ interface ClaimNarrative {
 const Index = () => {
   const [narrative, setNarrative] = useState<ClaimNarrative | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState<string>('');
   const [error, setError] = useState<string>('');
 
-  useEffect(() => {
-    // Load API key from localStorage on component mount
-    const savedApiKey = localStorage.getItem('openrouter_api_key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    }
-  }, []);
-
   const handleClaimSubmit = async (input: string) => {
-    if (!apiKey) {
-      setError('Please set your OpenRouter API key first.');
-      return;
-    }
-
     setIsLoading(true);
     setError('');
     
     try {
-      const result = await processClaimInput(input, apiKey);
+      const result = await processClaimInput(input);
       setNarrative(result);
     } catch (error) {
       console.error('Error processing claim:', error);
@@ -49,11 +34,6 @@ const Index = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleApiKeySet = (newApiKey: string) => {
-    setApiKey(newApiKey);
-    setError('');
   };
 
   return (
@@ -71,7 +51,7 @@ const Index = () => {
           </div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Transform raw claim descriptions into structured, emotion-aware narratives 
-            that accelerate insurance processing and improve claim clarity.
+            using advanced AI that runs directly in your browser.
           </p>
         </div>
 
@@ -109,12 +89,12 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-purple-700">
                 <Zap className="w-5 h-5" />
-                Instant Processing
+                Browser-Based AI
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Real-time analysis and narrative generation to reduce claim processing time.
+                Powered by Hugging Face Transformers - no API keys needed, runs entirely in your browser.
               </p>
             </CardContent>
           </Card>
@@ -122,10 +102,6 @@ const Index = () => {
 
         {/* Main Interface */}
         <div className="space-y-8">
-          {!apiKey && (
-            <ApiKeyInput onApiKeySet={handleApiKeySet} currentApiKey={apiKey} />
-          )}
-          
           {error && (
             <Card className="w-full max-w-2xl mx-auto bg-red-50 border-red-200">
               <CardContent className="pt-6">
