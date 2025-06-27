@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Mic, Send, Loader2 } from 'lucide-react';
+import { Mic, Send, Loader2, MicOff } from 'lucide-react';
 
 interface ClaimInputProps {
   onSubmit: (input: string) => void;
@@ -13,6 +13,52 @@ interface ClaimInputProps {
 const ClaimInput: React.FC<ClaimInputProps> = ({ onSubmit, isLoading }) => {
   const [input, setInput] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  useEffect(() => {
+    // Check if browser supports speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        setInput(transcript);
+      };
+
+      recognitionRef.current.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setIsRecording(false);
+        setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+        if (isRecording) {
+          // Restart if we're still supposed to be recording
+          recognitionRef.current?.start();
+        }
+      };
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [isRecording]);
 
   const handleSubmit = () => {
     if (input.trim()) {
@@ -22,10 +68,24 @@ const ClaimInput: React.FC<ClaimInputProps> = ({ onSubmit, isLoading }) => {
   };
 
   const handleVoiceInput = () => {
-    // Placeholder for voice input functionality
-    setIsRecording(!isRecording);
-    // In a real implementation, this would use Web Speech API
+    if (!recognitionRef.current) {
+      alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+      return;
+    }
+
+    if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
+      recognitionRef.current.stop();
+    } else {
+      // Start recording
+      setIsRecording(true);
+      setInput(''); // Clear previous input
+      recognitionRef.current.start();
+    }
   };
+
+  const isSpeechSupported = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -46,10 +106,21 @@ const ClaimInput: React.FC<ClaimInputProps> = ({ onSubmit, isLoading }) => {
           <Button
             onClick={handleVoiceInput}
             variant="outline"
-            className={`flex-1 ${isRecording ? 'bg-red-50 border-red-200' : ''}`}
+            disabled={!isSpeechSupported}
+            className={`flex-1 ${
+              isRecording 
+                ? 'bg-red-50 border-red-200 text-red-600' 
+                : isListening 
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-600'
+                : ''
+            }`}
           >
-            <Mic className={`w-4 h-4 mr-2 ${isRecording ? 'text-red-500' : ''}`} />
-            {isRecording ? 'Stop Recording' : 'Voice Input'}
+            {isRecording ? (
+              <MicOff className="w-4 h-4 mr-2 text-red-500" />
+            ) : (
+              <Mic className="w-4 h-4 mr-2" />
+            )}
+            {isRecording ? 'Stop Recording' : isListening ? 'Listening...' : 'Voice Input'}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -64,6 +135,11 @@ const ClaimInput: React.FC<ClaimInputProps> = ({ onSubmit, isLoading }) => {
             Generate Narrative
           </Button>
         </div>
+        {!isSpeechSupported && (
+          <p className="text-sm text-gray-500 text-center">
+            Speech recognition is not supported in your browser. Please use Chrome or Edge for voice input.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

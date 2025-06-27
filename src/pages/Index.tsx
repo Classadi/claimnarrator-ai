@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Brain, Shield, FileText, Zap } from 'lucide-react';
 import ClaimInput from '@/components/ClaimInput';
 import NarrativeOutput from '@/components/NarrativeOutput';
 import ReportDownload from '@/components/ReportDownload';
+import ApiKeyInput from '@/components/ApiKeyInput';
 import { processClaimInput } from '@/utils/claimProcessor';
 
 interface ClaimNarrative {
@@ -19,17 +20,40 @@ interface ClaimNarrative {
 const Index = () => {
   const [narrative, setNarrative] = useState<ClaimNarrative | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    // Load API key from localStorage on component mount
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const handleClaimSubmit = async (input: string) => {
+    if (!apiKey) {
+      setError('Please set your OpenAI API key first.');
+      return;
+    }
+
     setIsLoading(true);
+    setError('');
+    
     try {
-      const result = await processClaimInput(input);
+      const result = await processClaimInput(input, apiKey);
       setNarrative(result);
     } catch (error) {
       console.error('Error processing claim:', error);
+      setError(error instanceof Error ? error.message : 'An error occurred while processing your claim.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleApiKeySet = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    setError('');
   };
 
   return (
@@ -98,6 +122,18 @@ const Index = () => {
 
         {/* Main Interface */}
         <div className="space-y-8">
+          {!apiKey && (
+            <ApiKeyInput onApiKeySet={handleApiKeySet} currentApiKey={apiKey} />
+          )}
+          
+          {error && (
+            <Card className="w-full max-w-2xl mx-auto bg-red-50 border-red-200">
+              <CardContent className="pt-6">
+                <p className="text-red-700 text-center">{error}</p>
+              </CardContent>
+            </Card>
+          )}
+          
           <ClaimInput onSubmit={handleClaimSubmit} isLoading={isLoading} />
           
           {narrative && (

@@ -1,10 +1,88 @@
 
-// Mock AI processing function - in a real app, this would call OpenAI/Gemini API
-export const processClaimInput = async (input: string) => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 2000));
+// Real AI processing function using OpenAI API
+export const processClaimInput = async (input: string, apiKey: string) => {
+  if (!apiKey) {
+    throw new Error('OpenAI API key is required');
+  }
 
-  // Mock AI processing - extract key information
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4',
+        messages: [
+          {
+            role: 'system',
+            content: `You are an insurance claim processing AI. Analyze the claim description and return a JSON response with the following structure:
+            {
+              "structuredText": "Professional narrative of the incident",
+              "emotions": ["Emotion1", "Emotion2"],
+              "tags": ["Tag1", "Tag2"],
+              "timestamp": "extracted time information",
+              "location": "extracted location information",
+              "severity": "low|medium|high"
+            }
+            
+            Guidelines:
+            - Write the structuredText as a professional insurance narrative
+            - Extract emotions like "Physical Distress", "Anxiety", "Frustration", "Neutral"
+            - Extract relevant tags like "Accident", "Medical", "Property Damage", "Theft"
+            - Determine severity based on described impact
+            - Extract time and location details from the description`
+          },
+          {
+            role: 'user',
+            content: input
+          }
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+      }),
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Invalid API key. Please check your OpenAI API key.');
+      }
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0]?.message?.content;
+
+    if (!aiResponse) {
+      throw new Error('No response from OpenAI API');
+    }
+
+    // Try to parse JSON response
+    try {
+      const parsedResponse = JSON.parse(aiResponse);
+      return {
+        structuredText: parsedResponse.structuredText || generateFallbackNarrative(input),
+        emotions: parsedResponse.emotions || ['Neutral'],
+        tags: parsedResponse.tags || ['General'],
+        timestamp: parsedResponse.timestamp || 'Time not specified',
+        location: parsedResponse.location || 'Location not specified',
+        severity: parsedResponse.severity || 'medium'
+      };
+    } catch (parseError) {
+      // Fallback if JSON parsing fails
+      console.error('Failed to parse AI response as JSON:', parseError);
+      return generateFallbackNarrative(input);
+    }
+
+  } catch (error) {
+    console.error('Error processing claim with OpenAI:', error);
+    throw error;
+  }
+};
+
+// Fallback function for when AI processing fails
+const generateFallbackNarrative = (input: string) => {
   const lowerInput = input.toLowerCase();
   
   // Simple emotion detection
