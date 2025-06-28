@@ -5,7 +5,10 @@ import { Brain, Shield, FileText, Zap } from 'lucide-react';
 import ClaimInput from '@/components/ClaimInput';
 import NarrativeOutput from '@/components/NarrativeOutput';
 import ReportDownload from '@/components/ReportDownload';
+import ClaimVisualization from '@/components/ClaimVisualization';
+import LanguageSelector from '@/components/LanguageSelector';
 import { processClaimInput } from '@/utils/claimProcessor';
+import { translations, Language, TranslationKey } from '@/utils/translations';
 
 interface ClaimNarrative {
   structuredText: string;
@@ -20,6 +23,9 @@ const Index = () => {
   const [narrative, setNarrative] = useState<ClaimNarrative | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [language, setLanguage] = useState<Language>('en');
+
+  const t = (key: TranslationKey) => translations[language][key];
 
   const handleClaimSubmit = async (input: string) => {
     setIsLoading(true);
@@ -40,19 +46,21 @@ const Index = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
       {/* Header */}
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="p-3 bg-blue-600 rounded-xl">
-              <Brain className="w-8 h-8 text-white" />
+        <div className="flex justify-between items-start mb-8">
+          <div className="text-center flex-1">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="p-3 bg-blue-600 rounded-xl">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                {t('title')}
+              </h1>
             </div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-              ClaimNarrator AI
-            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              {t('subtitle')}
+            </p>
           </div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Transform raw claim descriptions into structured, emotion-aware narratives 
-            using advanced AI that runs directly in your browser.
-          </p>
+          <LanguageSelector currentLanguage={language} onLanguageChange={setLanguage} />
         </div>
 
         {/* Features Grid */}
@@ -61,12 +69,12 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Shield className="w-5 h-5" />
-                Emotion-Aware
+                {t('emotionAware')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Detects emotional context and tone to provide empathetic, human-centered claim processing.
+                {t('emotionAwareDesc')}
               </p>
             </CardContent>
           </Card>
@@ -75,12 +83,12 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-indigo-700">
                 <FileText className="w-5 h-5" />
-                Structured Reports
+                {t('structuredReports')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Converts unstructured input into professional, insurance-ready documentation.
+                {t('structuredReportsDesc')}
               </p>
             </CardContent>
           </Card>
@@ -89,12 +97,12 @@ const Index = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-purple-700">
                 <Zap className="w-5 h-5" />
-                Browser-Based AI
+                {t('browserBasedAI')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Powered by Hugging Face Transformers - no API keys needed, runs entirely in your browser.
+                {t('browserBasedAIDesc')}
               </p>
             </CardContent>
           </Card>
@@ -114,6 +122,7 @@ const Index = () => {
           
           {narrative && (
             <>
+              <ClaimVisualization narrative={narrative} language={language} />
               <NarrativeOutput narrative={narrative} />
               <ReportDownload narrative={narrative} />
             </>
@@ -125,11 +134,11 @@ const Index = () => {
           <div className="mt-16 text-center">
             <Card className="max-w-3xl mx-auto bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
               <CardHeader>
-                <CardTitle className="text-blue-800">Try This Example</CardTitle>
+                <CardTitle className="text-blue-800">{t('tryExample')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-gray-700 italic">
-                  "I fell from stairs in my office at 6pm on Thursday. It was raining outside and the stairs were slippery. My knee is injured badly and I need medical attention."
+                  "{t('exampleText')}"
                 </p>
               </CardContent>
             </Card>
